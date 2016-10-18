@@ -25,17 +25,17 @@ public class PFTGen {
   static class TransformVisitor extends ClassVisitor {
     final Class<?> originalClass; 
     final String originalClassInternalName;
+    final String newClassInternalName; 
     final ClassNode node = new ClassNode();    
     final HashSet<String> pftMethods = new HashSet<String>();
     final HashSet<String> extraIfaces = new HashSet<String>();    
-    final String newClzName; 
     
     public TransformVisitor(Class<?> originalClass) {
       super(Opcodes.ASM5);
       this.cv = node;
       this.originalClass = originalClass;
       this.originalClassInternalName = Type.getInternalName(originalClass);      
-      this.newClzName = originalClass.getPackage().getName().replace('.', '/') + "/GeneratedClass" + UUID.randomUUID();
+      this.newClassInternalName = originalClass.getPackage().getName().replace('.', '/') + "/GeneratedClass" + UUID.randomUUID();
 
       findPftMethodsAndInterfaces();      
     }
@@ -65,7 +65,7 @@ public class PFTGen {
       }
       newIfaces.addAll(extraIfaces);
       
-      super.visit(version, access, newClzName, signature, superName, newIfaces.toArray(new String[newIfaces.size()]));      
+      super.visit(version, access, newClassInternalName, signature, superName, newIfaces.toArray(new String[newIfaces.size()]));      
     }
     
     class TransformMethodVisitor extends MethodVisitor {
@@ -80,7 +80,7 @@ public class PFTGen {
           // This will probably be mostly INVOKESPECIALS, but also INVOKESTATICS as well.
           // In either case, refer to the method in our new class. Without this classes won't
           // verify when they call their own private methods.
-          owner = newClzName; 
+          owner = newClassInternalName; 
         }
         super.visitMethodInsn(opcode, owner, name, desc, itf);
       }
@@ -96,7 +96,7 @@ public class PFTGen {
             Handle h = (Handle)o;            
             
             if (originalClassInternalName.equals(h.getOwner())) {
-              newArgs[i] = new Handle(h.getTag(), newClzName, h.getName(), h.getDesc(), h.isInterface());
+              newArgs[i] = new Handle(h.getTag(), newClassInternalName, h.getName(), h.getDesc(), h.isInterface());
             } else {
               newArgs[i] = o;
             }
@@ -111,7 +111,7 @@ public class PFTGen {
       @Override
       public void visitFieldInsn(int opcode, String owner, String name, String desc) {
         if (originalClassInternalName.equals(owner)) {
-          owner = newClzName;
+          owner = newClassInternalName;
         }
         
         super.visitFieldInsn(opcode, owner, name, desc);
@@ -121,12 +121,11 @@ public class PFTGen {
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
       if (pftMethods.contains(name + desc)) {
-        int newAccess = access & ~Opcodes.ACC_PRIVATE & ~Opcodes.ACC_PROTECTED;
-        newAccess = newAccess | Opcodes.ACC_PUBLIC;
-        return new TransformMethodVisitor(cv.visitMethod(newAccess, name, desc, signature, exceptions));
-      } else {
-        return new TransformMethodVisitor(cv.visitMethod(access, name, desc, signature, exceptions));
+        access = access & ~Opcodes.ACC_PRIVATE & ~Opcodes.ACC_PROTECTED;
+        access = access | Opcodes.ACC_PUBLIC;
       }
+      
+      return new TransformMethodVisitor(cv.visitMethod(access, name, desc, signature, exceptions));
     }
     
     public ClassNode getNode() {
