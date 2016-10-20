@@ -9,6 +9,7 @@
 	<packaging>jar</packaging>
 
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<asm.version>5.1</asm.version>
 		<junit.version>4.12</junit.version>
 		<assertj.version>3.5.2</assertj.version>		
@@ -125,7 +126,8 @@
 					<reuseForks>false</reuseForks>
 					<redirectTestOutputToFile>false</redirectTestOutputToFile>
 					<includes>
-						<include>**/Test*.java</include>
+						<include>**/FuncTest*.java</include>
+						<include>**/UnitTest*.java</include>
 					</includes>
 					<argLine>${surefireArgLine}</argLine>
 				</configuration>
