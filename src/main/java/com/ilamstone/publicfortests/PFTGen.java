@@ -55,7 +55,7 @@ public class PFTGen {
       this.newClassInternalName = originalClass.getPackage().getName().replace('.', '/') + "/GeneratedClass" + UUID.randomUUID();
 
       pftMethods = methods.stream().map(m -> m.getName() + Type.getMethodDescriptor(m)).collect(Collectors.toSet());
-      extraIfaces = interfaces.stream().map(c -> Type.getInternalName(c)).collect(Collectors.toSet());
+      extraIfaces = interfaces.stream().map(Type::getInternalName).collect(Collectors.toSet());
     }
         
     @Override
