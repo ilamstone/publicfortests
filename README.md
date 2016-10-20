@@ -53,6 +53,27 @@ public void testSomePrivateMethod() {
 
 And thanks to some behind the scenes dark magic, it should work as you expect, and your private method is now tested.
 
+### Testing legacy code
+
+If you're testing some legacy code that doesn't have the `@PublicForTests` annotation, you can manually supploy
+the methods to be made public. For example, if somePrivateMethod in the example above didn't have the annotation, you
+could use the alternative version of `getTestingClass` like so:
+
+```java
+@Test
+public void testSomePrivateMethod() throws NoSuchMethodException {
+  Set<Method> methods = ImmutableSet.of(SomeClass.class.getDeclaredMethod("somePrivateMethod"));
+  Set<Class<?>> interfaces = ImmutableSet.of(SomeClassTesting.class);
+  
+  SomeClassTesting sct = PFTGen.getTestingClass(SomeClass.class, methods, interfaces).newInstance();
+  assertEquals("this is trivial", sct.somePrivateMethod()); 
+}
+```
+
+You may also prefer this method over using the annotation in your own code, because it will allow your
+resulting artifact to avoid a runtime dependency on this library, and hence on the ASM libs. You'll only
+need these as a test-time dependency.
+
 ## Caveats
 
 * See the bold note at the start of this document.
