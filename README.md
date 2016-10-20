@@ -55,7 +55,7 @@ And thanks to some behind the scenes dark magic, it should work as you expect, a
 
 ### Testing legacy code
 
-If you're testing some legacy code that doesn't have the `@PublicForTests` annotation, you can manually supploy
+If you're testing some legacy code that doesn't have the `@PublicForTests` annotation, you can manually supply
 the methods to be made public. For example, if somePrivateMethod in the example above didn't have the annotation, you
 could use the alternative version of `getTestingClass` like so:
 
